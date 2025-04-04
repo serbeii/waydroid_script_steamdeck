@@ -8,7 +8,7 @@ from tools.logger import Logger
 class Houdini(General):
     id = "libhoudini"
     partition = "system"
-    steamdeck_install_path = os.path.expanduser("~/home/deck/waydroid/houdini")
+    steamdeck_install_path = os.path.expanduser("/home/deck/waydroid/houdini")
     dl_links = {
         "11": ["https://github.com/supremegamers/vendor_intel_proprietary_houdini/archive/81f2a51ef539a35aead396ab7fce2adf89f46e88.zip", "fbff756612b4144797fbc99eadcb6653"],
         # "13": ["https://github.com/supremegamers/vendor_intel_proprietary_houdini/archive/978d8cba061a08837b7e520cd03b635af643ba08.zip", "1e139054c05034648fae58a1810573b4"]
@@ -62,7 +62,7 @@ on property:ro.enable.native.bridge.exec=1
         destination = os.path.join(self.steamdeck_install_path, self.partition)
         shutil.copytree(source, destination, dirs_exist_ok=True)
         init_path = os.path.join(
-            self.steamdeck_install_path self.partition, "etc", "init", "houdini.rc")
+            self.steamdeck_install_path, self.partition, "etc", "init", "houdini.rc")
         if not os.path.isfile(init_path):
             os.makedirs(os.path.dirname(init_path), exist_ok=True)
         with open(init_path, "w") as initfile:
