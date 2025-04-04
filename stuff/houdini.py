@@ -8,6 +8,7 @@ from tools.logger import Logger
 class Houdini(General):
     id = "libhoudini"
     partition = "system"
+    steamdeck_install_path = os.path.expanduser("~/home/deck/waydroid/houdini")
     dl_links = {
         "11": ["https://github.com/supremegamers/vendor_intel_proprietary_houdini/archive/81f2a51ef539a35aead396ab7fce2adf89f46e88.zip", "fbff756612b4144797fbc99eadcb6653"],
         # "13": ["https://github.com/supremegamers/vendor_intel_proprietary_houdini/archive/978d8cba061a08837b7e520cd03b635af643ba08.zip", "1e139054c05034648fae58a1810573b4"]
@@ -56,11 +57,39 @@ on property:ro.enable.native.bridge.exec=1
     def copy(self):
         Logger.info("Copying libhoudini library files ...")
         name = re.findall("([a-zA-Z0-9]+)\.zip", self.dl_link)[0]
-        shutil.copytree(os.path.join(self.extract_to, "vendor_intel_proprietary_houdini-" + name,
-                        "prebuilts"), os.path.join(self.copy_dir, self.partition), dirs_exist_ok=True)
+        source = os.path.join(self.extract_to, "vendor_intel_proprietary_houdini-" + name,
+                        "prebuilts")
+        destination = os.path.join(self.steamdeck_install_path, self.partition)
+        shutil.copytree(source, destination, dirs_exist_ok=True)
         init_path = os.path.join(
-            self.copy_dir, self.partition, "etc", "init", "houdini.rc")
+            self.steamdeck_install_path self.partition, "etc", "init", "houdini.rc")
         if not os.path.isfile(init_path):
             os.makedirs(os.path.dirname(init_path), exist_ok=True)
         with open(init_path, "w") as initfile:
             initfile.write(self.init_rc_component)
+
+        self.create_symlinks()
+
+    def create_symlinks(self):
+        Logger.info("Creating symlinks from libhoudini...")
+        system_base = os.path.join(self.copy_dir, self.partition)
+        
+        os.makedirs(system_base, exist_ok=True)
+        
+        for file_path in self.files:
+            source = os.path.join(self.steamdeck_install_path, file_path)
+            target = os.path.join(system_base, file_path)
+            
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            
+            if os.path.exists(target):
+                if os.path.isdir(target):
+                    shutil.rmtree(target)
+                else:
+                    os.remove(target)
+            
+            Logger.info(f"Creating symlink: {target} -> {source}")
+            if os.path.isdir(source):
+                os.symlink(source, target, target_is_directory=True)
+            else:
+                os.symlink(source, target)
